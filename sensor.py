@@ -3,9 +3,10 @@ from decimal import Decimal
 
 from homeassistant.helpers.typing import StateType
 
+from coordinator import LOGGER
 from .const import DOMAIN
-
-from homeassistant.components.sensor import SensorEntity
+from .coordinator import PranaCoordinator
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -18,59 +19,59 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         PranaSensor(
             hass,
             coordinator,
-            "Temperatur In Sensor",
+            "Temperature In Sensor",
             f"{config_entry.entry_id}_temperature_in",
             "temperature_in",
         ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "Temperatur Out Sensor",
-            f"{config_entry.entry_id}_temperature_out",
-            "temperature_out",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "Humidity Sensor",
-            f"{config_entry.entry_id}_humidity",
-            "humidity",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "Pressure Sensor",
-            f"{config_entry.entry_id}_pressure",
-            "pressure",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "VOC Sensor",
-            f"{config_entry.entry_id}_voc",
-            "voc",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "CO2 Sensor",
-            f"{config_entry.entry_id}_co2",
-            "co2",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "Speed In Sensor",
-            f"{config_entry.entry_id}_speed_in",
-            "speed_in",
-        ),
-        PranaSensor(
-            hass,
-            coordinator,
-            "Speed Out Sensor",
-            f"{config_entry.entry_id}_speed_out",
-            "speed_out",
-        ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "Temperatur Out Sensor",
+        #     f"{config_entry.entry_id}_temperature_out",
+        #     "temperature_out",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "Humidity Sensor",
+        #     f"{config_entry.entry_id}_humidity",
+        #     "humidity",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "Pressure Sensor",
+        #     f"{config_entry.entry_id}_pressure",
+        #     "pressure",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "VOC Sensor",
+        #     f"{config_entry.entry_id}_voc",
+        #     "voc",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "CO2 Sensor",
+        #     f"{config_entry.entry_id}_co2",
+        #     "co2",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "Speed In Sensor",
+        #     f"{config_entry.entry_id}_speed_in",
+        #     "speed_in",
+        # ),
+        # PranaSensor(
+        #     hass,
+        #     coordinator,
+        #     "Speed Out Sensor",
+        #     f"{config_entry.entry_id}_speed_out",
+        #     "speed_out",
+        # ),
     ]
 
     async_add_entities(sensors)
@@ -78,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 class PranaSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Prana sensor."""
 
-    def __init__(self, hass, coordinator, name: str, entry_id: str, sensor_type: str):
+    def __init__(self, hass, coordinator: PranaCoordinator, name: str, entry_id: str, sensor_type: str):
         """Initialize the sensor."""
         super().__init__(coordinator)
         _attr_has_entity_name = True
@@ -88,10 +89,19 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
         self._entry_id = entry_id
         self._sensor_type = sensor_type
 
+        LOGGER.debug(f"Initialized sensor: {self._name} of type {self._sensor_type}")
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.TEMPERATURE
+
+    def state_class(self) -> SensorStateClass | str | None:
+        return SensorStateClass.MEASUREMENT
+
     @property
     def native_value(self) -> StateType | date | datetime | Decimal:
-        return self.coordinator.get_sensor_value(self._sensor_type)
+        return self.coordinator.get_value(self._sensor_type)
 
     @property
     def native_unit_of_measurement(self) -> str | None:
-        return self.coordinator.get_sensor_unit(self._sensor_type)
+        return self.coordinator.get_unit(self._sensor_type)

@@ -459,10 +459,9 @@ class PranaCoordinator(DataUpdateCoordinator):
                 await client.stop_notify(read_char)
                 await client.disconnect()
 
-    def get_sensor_value(self, sensor_type: str) -> Union[int, float, None]:
+    def get_value(self, sensor_type: str) -> Union[int, float, None]:
         """Get sensor value by type."""
 
-        LOGGER.debug("Debugging sensors: %s", self)
         if not self.sensors:
             return None
 
@@ -487,7 +486,7 @@ class PranaCoordinator(DataUpdateCoordinator):
         # else:
         #     return None
 
-    def get_sensor_unit(self, sensor_type: str) -> Optional[str]:
+    def get_unit(self, sensor_type: str) -> Optional[str]:
         """Get sensor unit by type."""
         if sensor_type in ["temperature_in", "temperature_out"]:
             return "°C"
