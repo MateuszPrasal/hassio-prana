@@ -214,6 +214,38 @@ class PranaCoordinator(DataUpdateCoordinator):
     async def get_status_details(self):
         return await self._write(self.Cmd.READ_STATE)
 
+    async def set_speed_in(self, speed: int):
+        if not self.is_on:
+            await self.turn_on()
+
+        direction_up = speed > self.speed_in
+        counter = self.speed_in
+        if direction_up:
+            while counter < speed:
+                await self._write(self.Cmd.SPEED_IN_UP)
+                counter += 1
+        else:
+            while counter > speed:
+                await self._write(self.Cmd.SPEED_IN_DOWN)
+                counter -= 1
+        self.speed_in = speed
+
+    async def set_speed_out(self, speed: int):
+        if not self.is_on:
+            await self.turn_on()
+
+        direction_up = speed > self.speed_out
+        counter = self.speed_out
+        if direction_up:
+            while counter < speed:
+                await self._write(self.Cmd.SPEED_OUT_UP)
+                counter += 1
+        else:
+            while counter > speed:
+                await self._write(self.Cmd.SPEED_OUT_DOWN)
+                counter -= 1
+        self.speed_out = speed
+
     @retry_bluetooth_connection_error
     async def set_speed(self, speed: int):
         if (speed == self.speed):

@@ -23,10 +23,13 @@ MAX_BRIGHTNESS = 6
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities([PranaCover(coordinator, config_entry)])
+    async_add_entities([
+        SpeedInPranaCover(coordinator, config_entry),
+        SpeedOutPranaCover(coordinator, config_entry)
+    ])
 
 
-class PranaCover(CoordinatorEntity, CoverEntity):
+class BasePranaCover(CoordinatorEntity, CoverEntity):
     """Representation of a Prana cover (using brightness as position)."""
 
     def __init__(self, coordinator: PranaCoordinator, config_entry):
@@ -39,7 +42,6 @@ class PranaCover(CoordinatorEntity, CoverEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        LOGGER.debug('PranaCover coordinator update')
         self.async_write_ha_state()
 
     @property
@@ -67,6 +69,11 @@ class PranaCover(CoordinatorEntity, CoverEntity):
     @property
     def supported_features(self) -> int:
         return CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+
+class SpeedInPranaCover(BasePranaCover):
+    @property
+    def name(self) -> str:
+        return self._name + " Speed In"
 
     @property
     def current_cover_position(self) -> int | None:
@@ -99,12 +106,58 @@ class PranaCover(CoordinatorEntity, CoverEntity):
 
     async def async_open_cover(self, **kwargs) -> None:
         current = self.coordinator.speed_in or 0
-        await self.coordinator.set_speed(current + 1)
+        await self.coordinator.set_speed_in(current + 1)
 
         self.async_write_ha_state()
 
     async def async_close_cover(self, **kwargs) -> None:
         current = self.coordinator.speed_in or 0
-        await self.coordinator.set_speed(current - 1 if current > 1 else 0)
+        await self.coordinator.set_speed_in(current - 1 if current > 1 else 0)
+
+        self.async_write_ha_state()
+
+class SpeedOutPranaCover(BasePranaCover):
+    @property
+    def name(self) -> str:
+        return self._name + " Speed Out"
+
+    @property
+    def current_cover_position(self) -> int | None:
+        """Return current position of the cover (0-100).
+
+        Mapping: coordinator.speed_in (1-5) -> 0-100 percent.
+        """
+        s = self.coordinator.speed_out
+        if s is None:
+            return None
+        # speed_in expected in range 1..5 -> map to 0..100
+        try:
+            pos = round(((s - 1) / 4) * 100)
+        except Exception:
+            return None
+        return int(pos)
+
+    @property
+    def is_closed(self) -> bool | None:
+        # Consider the cover closed when device is off
+        if self.coordinator.is_on is None:
+            return None
+        return not self.coordinator.is_on
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "last_updated": self.coordinator.lastRead,
+        }
+
+    async def async_open_cover(self, **kwargs) -> None:
+        current = self.coordinator.speed_out or 0
+        await self.coordinator.set_speed_out(current + 1)
+
+        self.async_write_ha_state()
+
+    async def async_close_cover(self, **kwargs) -> None:
+        current = self.coordinator.speed_out or 0
+        await self.coordinator.set_speed_out(current - 1 if current > 1 else 0)
 
         self.async_write_ha_state()
