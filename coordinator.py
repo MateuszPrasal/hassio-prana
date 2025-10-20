@@ -462,28 +462,30 @@ class PranaCoordinator(DataUpdateCoordinator):
     def get_value(self, sensor_type: str) -> Union[int, float, None]:
         """Get sensor value by type."""
 
-        if not self.sensors:
-            return None
-
-        if sensor_type == "temperature_in":
-            return self.sensors.temperature_in
-        elif sensor_type == "temperature_out":
-            return self.sensors.temperature_out
-        elif sensor_type == "humidity":
-            return self.sensors.humidity
-        elif sensor_type == "pressure":
-            return self.sensors.pressure
-        elif sensor_type == "co2":
-            return self.sensors.co2
-        elif sensor_type == "voc":
-            return self.sensors.voc
-        elif sensor_type == "speed_in":
-            return self.speed_in
-        elif sensor_type == "speed_out":
-            return self.speed_out
-
-        else:
-            return None
+        LOGGER.warning("Sensors data: %s", self.sensors)
+        return 10
+        # if not self.sensors:
+        #     return None
+        #
+        # if sensor_type == "temperature_in":
+        #     return self.sensors.temperature_in
+        # elif sensor_type == "temperature_out":
+        #     return self.sensors.temperature_out
+        # elif sensor_type == "humidity":
+        #     return self.sensors.humidity
+        # elif sensor_type == "pressure":
+        #     return self.sensors.pressure
+        # elif sensor_type == "co2":
+        #     return self.sensors.co2
+        # elif sensor_type == "voc":
+        #     return self.sensors.voc
+        # elif sensor_type == "speed_in":
+        #     return self.speed_in
+        # elif sensor_type == "speed_out":
+        #     return self.speed_out
+        #
+        # else:
+        #     return None
 
     def get_unit(self, sensor_type: str) -> Optional[str]:
         """Get sensor unit by type."""
