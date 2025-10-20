@@ -96,6 +96,7 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
     def device_class(self) -> SensorDeviceClass | None:
         return SensorDeviceClass.TEMPERATURE
 
+    @property
     def state_class(self) -> SensorStateClass | str | None:
         return SensorStateClass.MEASUREMENT
 
