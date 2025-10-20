@@ -14,7 +14,7 @@ from homeassistant.helpers import device_registry
 
 LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_devices):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     sensors = [
@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         ),
     ]
 
-    async_add_devices(sensors)
+    async_add_entities(sensors)
 
 class PranaSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Prana sensor."""
