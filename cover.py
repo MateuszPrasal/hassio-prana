@@ -66,7 +66,7 @@ class PranaCover(CoordinatorEntity, CoverEntity):
 
     @property
     def supported_features(self) -> int:
-        return CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.SET_POSITION
+        return CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
     @property
     def current_cover_position(self) -> int | None:
@@ -98,40 +98,13 @@ class PranaCover(CoordinatorEntity, CoverEntity):
         }
 
     async def async_open_cover(self, **kwargs) -> None:
-        LOGGER.debug('async_open_cover called with kwargs: %s', kwargs)
-        await self.coordinator.async_request_refresh()
+        current = self.coordinator.speed_in or 0
+        await self.coordinator.set_speed(current + 1)
+
         self.async_write_ha_state()
 
     async def async_close_cover(self, **kwargs) -> None:
-        LOGGER.debug('async_open_cover called with kwargs: %s', kwargs)
-        await self.coordinator.async_request_refresh()
-        self.async_write_ha_state()
-
-    async def async_set_cover_position(self, **kwargs) -> None:
-        position = kwargs.get("position")
-        LOGGER.debug('Kwargs for set_cover_position: %s', kwargs)
-        if position is None:
-            return
-        # map 0..100 to speed_in range 1..5
-        pct = int(position)
-        if pct <= 0:
-            target = 1
-        else:
-            # scale 0..100 to 1..5
-            target = min(5, max(1, round(1 + (pct / 100) * 4)))
-
-        LOGGER.debug(f'Setting Prana cover position to {target}')
-
-        # If coordinator already has desired value, nothing to do
         current = self.coordinator.speed_in or 0
-        if current == target:
-            await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-            return
+        await self.coordinator.set_speed(current - 1 if current > 1 else 0)
 
-        await self.coordinator.set_speed(target)
-
-    async def async_stop_cover(self, **kwargs) -> None:
-        # No dedicated stop command on device; just refresh state.
-        await self.coordinator.async_request_refresh()
         self.async_write_ha_state()
