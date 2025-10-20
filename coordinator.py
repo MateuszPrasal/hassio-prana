@@ -462,7 +462,7 @@ class PranaCoordinator(DataUpdateCoordinator):
     def get_value(self, sensor_type: str) -> Union[int, float, None]:
         """Get sensor value by type."""
 
-        LOGGER.warning("Sensors data: %s", self.speed_in)
+        LOGGER.warning("Sensors data: %s", self.sensors.to_dict())
         return 10
         # if not self.sensors:
         #     return None
