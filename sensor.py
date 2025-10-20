@@ -2,8 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from homeassistant.helpers.typing import StateType
-
-from coordinator import LOGGER
+import logging
 from .const import DOMAIN
 from .coordinator import PranaCoordinator
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
@@ -11,6 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
