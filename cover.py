@@ -107,6 +107,7 @@ class PranaCover(CoordinatorEntity, CoverEntity):
 
     async def async_set_cover_position(self, **kwargs) -> None:
         position = kwargs.get("position")
+
         if position is None:
             return
         # map 0..100 to speed_in range 1..5
@@ -117,6 +118,8 @@ class PranaCover(CoordinatorEntity, CoverEntity):
             # scale 0..100 to 1..5
             target = min(5, max(1, round(1 + (pct / 100) * 4)))
 
+        LOGGER.debug(f'Setting Prana cover position to {target}')
+
         # If coordinator already has desired value, nothing to do
         current = self.coordinator.speed_in or 0
         if current == target:
@@ -124,18 +127,7 @@ class PranaCover(CoordinatorEntity, CoverEntity):
             self.async_write_ha_state()
             return
 
-        # Send SPEED_IN_UP / SPEED_IN_DOWN until desired value reached
-        if current < target:
-            while current < target:
-                await self.coordinator._write(self.coordinator.Cmd.SPEED_IN_UP)
-                current += 1
-        else:
-            while current > target:
-                await self.coordinator._write(self.coordinator.Cmd.SPEED_IN_DOWN)
-                current -= 1
-
-        await self.coordinator.async_request_refresh()
-        self.async_write_ha_state()
+        await self.coordinator.set_speed(target)
 
     async def async_stop_cover(self, **kwargs) -> None:
         # No dedicated stop command on device; just refresh state.
