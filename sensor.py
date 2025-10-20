@@ -91,8 +91,6 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
         self._entry_id = entry_id
         self._sensor_type = sensor_type
 
-        LOGGER.warning(f"Initialized sensor: {self._name} of type {self._sensor_type}")
-
     @property
     def device_info(self):
         """Return device info."""

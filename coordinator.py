@@ -119,7 +119,7 @@ class PranaCoordinator(DataUpdateCoordinator):
             hass,
             LOGGER,
             name="Prana ventilation",
-            update_interval=timedelta(seconds=15),
+            update_interval=timedelta(seconds=10),
         )
 
         self.loop = asyncio.get_running_loop()

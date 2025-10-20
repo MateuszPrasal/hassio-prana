@@ -13,7 +13,7 @@ from .const import DOMAIN
 from .coordinator import PranaCoordinator
 import logging
 
-PLATFORMS = ["fan", "switch", "sensor"]
+PLATFORMS = ["fan", "switch", "sensor", "cover"]
 CLIENT = "client"
 CONFIG = "config"
 SENSOR_TYPES = {
