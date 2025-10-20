@@ -458,3 +458,45 @@ class PranaCoordinator(DataUpdateCoordinator):
             if client and client.is_connected:
                 await client.stop_notify(read_char)
                 await client.disconnect()
+
+    def get_sensor_value(self, sensor_type: str) -> Union[int, float, None]:
+        """Get sensor value by type."""
+        if not self.sensors:
+            return None
+
+        if sensor_type == "temperature_in":
+            return self.sensors.temperature_in
+        elif sensor_type == "temperature_out":
+            return self.sensors.temperature_out
+        elif sensor_type == "humidity":
+            return self.sensors.humidity
+        elif sensor_type == "pressure":
+            return self.sensors.pressure
+        elif sensor_type == "co2":
+            return self.sensors.co2
+        elif sensor_type == "voc":
+            return self.sensors.voc
+        elif sensor_type == "speed_in":
+            return self.speed_in
+        elif sensor_type == "speed_out":
+            return self.speed_out
+
+        else:
+            return None
+
+    def get_sensor_unit(self, sensor_type: str) -> Optional[str]:
+        """Get sensor unit by type."""
+        if sensor_type in ["temperature_in", "temperature_out"]:
+            return "°C"
+        elif sensor_type == "humidity":
+            return "%"
+        elif sensor_type == "pressure":
+            return "hPa"
+        elif sensor_type == "co2":
+            return "ppm"
+        elif sensor_type == "voc":
+            return "ppb"
+        elif sensor_type in ["speed_in", "speed_out"]:
+            return "x"
+        else:
+            return None

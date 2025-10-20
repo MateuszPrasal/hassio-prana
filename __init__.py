@@ -25,7 +25,7 @@ SENSOR_TYPES = {
     "speed": ["Speed", "level", "mdi:gauge"],
 }
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=15)
 DEFAULT_MEDIAN = 1
 CONF_MEDIAN = "median"
 LOGGER = logging.getLogger(__name__)
