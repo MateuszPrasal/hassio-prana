@@ -66,7 +66,7 @@ class PranaCover(CoordinatorEntity, CoverEntity):
 
     @property
     def supported_features(self) -> int:
-        return CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.SET_POSITION | CoverEntityFeature.STOP
+        return CoverEntityFeature.SET_POSITION
 
     @property
     def current_cover_position(self) -> int | None:
@@ -97,17 +97,9 @@ class PranaCover(CoordinatorEntity, CoverEntity):
             "last_updated": self.coordinator.lastRead,
         }
 
-    async def async_open_cover(self, **kwargs) -> None:
-        await self.coordinator.async_request_refresh()
-        self.async_write_ha_state()
-
-    async def async_close_cover(self, **kwargs) -> None:
-        await self.coordinator.async_request_refresh()
-        self.async_write_ha_state()
-
     async def async_set_cover_position(self, **kwargs) -> None:
         position = kwargs.get("position")
-
+        LOGGER.debug('Kwargs for set_cover_position: %s', kwargs)
         if position is None:
             return
         # map 0..100 to speed_in range 1..5
@@ -128,8 +120,3 @@ class PranaCover(CoordinatorEntity, CoverEntity):
             return
 
         await self.coordinator.set_speed(target)
-
-    async def async_stop_cover(self, **kwargs) -> None:
-        # No dedicated stop command on device; just refresh state.
-        await self.coordinator.async_request_refresh()
-        self.async_write_ha_state()
