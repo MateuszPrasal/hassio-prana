@@ -90,15 +90,7 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
         self._entry_id = entry_id
         self._sensor_type = sensor_type
 
-        LOGGER.debug(f"Initialized sensor: {self._name} of type {self._sensor_type}")
-
-    @property
-    def device_class(self) -> SensorDeviceClass | None:
-        return SensorDeviceClass.TEMPERATURE
-
-    @property
-    def state_class(self) -> SensorStateClass | str | None:
-        return SensorStateClass.MEASUREMENT
+        LOGGER.warning(f"Initialized sensor: {self._name} of type {self._sensor_type}")
 
     @property
     def native_value(self) -> StateType | date | datetime | Decimal:
