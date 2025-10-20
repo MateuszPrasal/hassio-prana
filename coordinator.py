@@ -368,7 +368,10 @@ class PranaCoordinator(DataUpdateCoordinator):
         if state is not None:
             dict_state = state.to_dict()
             for key in dict_state:
-                setattr(self, key, dict_state[key])
+                if key == "sensors":
+                    self.sensors = state.sensors
+                else:
+                    setattr(self, key, dict_state[key])
             LOGGER.debug("Send update event %s", dict_state)
             await self.async_request_refresh()
 
