@@ -9,11 +9,12 @@ from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, Sen
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers import device_registry
 
 LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_devices):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     sensors = [
@@ -75,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         # ),
     ]
 
-    async_add_entities(sensors)
+    async_add_devices(sensors)
 
 class PranaSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Prana sensor."""
@@ -91,6 +92,18 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
         self._sensor_type = sensor_type
 
         LOGGER.warning(f"Initialized sensor: {self._name} of type {self._sensor_type}")
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        return DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.coordinator.mac)
+            },
+            name=self.name,
+            connections={(device_registry.CONNECTION_NETWORK_MAC, self.coordinator.mac)},
+        )
 
     @property
     def native_value(self) -> StateType | date | datetime | Decimal:
