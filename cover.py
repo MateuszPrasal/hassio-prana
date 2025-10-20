@@ -7,10 +7,7 @@ import logging
 
 from homeassistant.components.cover import (
     CoverEntity,
-    SUPPORT_OPEN,
-    SUPPORT_CLOSE,
-    SUPPORT_SET_POSITION,
-    SUPPORT_STOP,
+    CoverEntityFeature
 )
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -69,7 +66,7 @@ class PranaCover(CoordinatorEntity, CoverEntity):
 
     @property
     def supported_features(self) -> int:
-        return SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_SET_POSITION | SUPPORT_STOP
+        return CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.SET_POSITION | CoverEntityFeature.STOP
 
     @property
     def current_cover_position(self) -> int | None:
