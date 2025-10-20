@@ -45,10 +45,6 @@ class BasePranaCover(CoordinatorEntity, CoverEntity):
         self.async_write_ha_state()
 
     @property
-    def unique_id(self) -> str:
-        return f"{self.coordinator.mac.replace(':', '')}_cover"
-
-    @property
     def name(self) -> str:
         return self._name
 
@@ -74,6 +70,10 @@ class SpeedInPranaCover(BasePranaCover):
     @property
     def name(self) -> str:
         return self._name + " Speed In"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self.coordinator.mac.replace(':', '')}speed_in_cover"
 
     @property
     def current_cover_position(self) -> int | None:
@@ -120,6 +120,10 @@ class SpeedOutPranaCover(BasePranaCover):
     @property
     def name(self) -> str:
         return self._name + " Speed Out"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self.coordinator.mac.replace(':', '')}speed_out_cover"
 
     @property
     def current_cover_position(self) -> int | None:
