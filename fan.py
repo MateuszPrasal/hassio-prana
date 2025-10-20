@@ -110,7 +110,7 @@ class PranaFan(CoordinatorEntity, FanEntity):
     def supported_features(self) -> int:
         """Flag supported features."""
         # return SUPPORT_SET_SPEED | SUPPORT_DIRECTION | SUPPORT_PRESET_MODE
-        return FanEntityFeature.SET_SPEED | FanEntityFeature.DIRECTION | FanEntityFeature.PRESET_MODE
+        return FanEntityFeature.SET_SPEED | FanEntityFeature.PRESET_MODE | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
 
     async def async_turn_on(self, speed: str = None, percentage=None, preset_mode=None, **kwargs) -> None:
         """Turn on the entity."""
@@ -122,22 +122,6 @@ class PranaFan(CoordinatorEntity, FanEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the entity."""
         await self.coordinator.turn_off()
-        self.async_write_ha_state()
-        await self.coordinator.async_request_refresh()
-
-    async def async_set_direction(self, direction: str):
-        """Set the direction of the fan."""
-        if direction == 'reverse':
-            if not self.coordinator.is_input_fan_on:
-                await self.coordinator.toggle_air_in_off()
-
-            await self.coordinator.toggle_air_out_off()
-        elif direction == 'forward':
-            if not self.coordinator.is_output_fan_on:
-                await self.coordinator.toggle_air_out_off()
-
-            await self.coordinator.toggle_air_in_off()
-
         self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
 
@@ -184,15 +168,3 @@ class PranaFan(CoordinatorEntity, FanEntity):
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
         return int_states_in_range(SPEED_RANGE)
-
-    @property
-    def current_direction(self) -> str:
-        """Fan direction."""
-        if not self.coordinator.speed:
-            return None
-        elif not self.coordinator.is_input_fan_on:
-            return "forward"
-        elif not self.coordinator.is_output_fan_on:
-            return "reverse"
-        else:
-            return "reverse & forward"
