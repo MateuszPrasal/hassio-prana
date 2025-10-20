@@ -18,7 +18,7 @@
             "manual": {
                 "data": {
                     "mac": "Bluetooth MAC address",
-                    "name": "Name"
+                    "name": "Name of your Prana device"
                 },
                 "title": "Enter bluetooth MAC address"
             }

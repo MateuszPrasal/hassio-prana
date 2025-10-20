@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-import binascii 
+import binascii
 import async_timeout
 
 from homeassistant.components import bluetooth
@@ -33,16 +33,16 @@ import asyncio
 import logging
 import struct
 
-
 LOGGER = logging.getLogger(__name__)
 WRITE_CHARACTERISTIC_UUIDS = ["0000cccc-0000-1000-8000-00805f9b34fb"]
-READ_CHARACTERISTIC_UUIDS  = ["0000cccc-0000-1000-8000-00805f9b34fb"]
+READ_CHARACTERISTIC_UUIDS = ["0000cccc-0000-1000-8000-00805f9b34fb"]
 
 DEFAULT_ATTEMPTS = 3
 DISCONNECT_DELAY = 120
 BLEAK_BACKOFF_TIME = 0.25
 RETRY_BACKOFF_EXCEPTIONS = (BleakDBusError,)
 WrapFuncType = TypeVar("WrapFuncType", bound=Callable[..., Any])
+
 
 def retry_bluetooth_connection_error(func: WrapFuncType) -> WrapFuncType:
     """Define a wrapper to retry on bleak error.
@@ -52,7 +52,7 @@ def retry_bluetooth_connection_error(func: WrapFuncType) -> WrapFuncType:
     """
 
     async def _async_wrap_retry_bluetooth_connection_error(
-        self: "Prana", *args: Any, **kwargs: Any
+            self: "Prana", *args: Any, **kwargs: Any
     ) -> Any:
         attempts = DEFAULT_ATTEMPTS
         max_attempts = attempts - 1
@@ -66,17 +66,22 @@ def retry_bluetooth_connection_error(func: WrapFuncType) -> WrapFuncType:
                 raise
             except RETRY_BACKOFF_EXCEPTIONS as err:
                 if attempt >= max_attempts:
-                    LOGGER.debug("%s: %s error calling %s, reach max attempts (%s/%s)",self.name,type(err),func,attempt,max_attempts,exc_info=True,)
+                    LOGGER.debug("%s: %s error calling %s, reach max attempts (%s/%s)", self.name, type(err), func,
+                                 attempt, max_attempts, exc_info=True, )
                     raise
-                LOGGER.debug("%s: %s error calling %s, backing off %ss, retrying (%s/%s)...",self.name,type(err),func,BLEAK_BACKOFF_TIME,attempt,max_attempts,exc_info=True,)
+                LOGGER.debug("%s: %s error calling %s, backing off %ss, retrying (%s/%s)...", self.name, type(err),
+                             func, BLEAK_BACKOFF_TIME, attempt, max_attempts, exc_info=True, )
                 await asyncio.sleep(BLEAK_BACKOFF_TIME)
             except BLEAK_EXCEPTIONS as err:
                 if attempt >= max_attempts:
-                    LOGGER.debug("%s: %s error calling %s, reach max attempts (%s/%s): %s",self.name,type(err),func,attempt,max_attempts,err,exc_info=True,)
+                    LOGGER.debug("%s: %s error calling %s, reach max attempts (%s/%s): %s", self.name, type(err), func,
+                                 attempt, max_attempts, err, exc_info=True, )
                     raise
-                LOGGER.debug("%s: %s error calling %s, retrying  (%s/%s)...: %s",self.name,type(err),func,attempt,max_attempts,err,exc_info=True,)
+                LOGGER.debug("%s: %s error calling %s, retrying  (%s/%s)...: %s", self.name, type(err), func, attempt,
+                             max_attempts, err, exc_info=True, )
 
     return cast(WrapFuncType, _async_wrap_retry_bluetooth_connection_error)
+
 
 class PranaCoordinator(DataUpdateCoordinator):
     CONTROL_SERVICE_UUID = "0000baba-0000-1000-8000-00805f9b34fb"
@@ -114,7 +119,7 @@ class PranaCoordinator(DataUpdateCoordinator):
             hass,
             LOGGER,
             name="Prana ventilation",
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=10),
         )
 
         self.loop = asyncio.get_running_loop()
@@ -131,7 +136,7 @@ class PranaCoordinator(DataUpdateCoordinator):
         self._read_uuid = None
 
         # Device data
-        self.speed = 0 #calculated
+        self.speed = 0  # calculated
         self.speed_locked: Optional[int] = None
         self.speed_in: Optional[int] = None
         self.speed_out: Optional[int] = None
@@ -176,15 +181,11 @@ class PranaCoordinator(DataUpdateCoordinator):
         await self._client.write_gatt_char(self._write_uuid, data, await_response)
 
         # Update the info after each command
-        if(self.Cmd.READ_STATE != data):
+        if (self.Cmd.READ_STATE != data):
             LOGGER.debug("Before read state")
             return await self._client.write_gatt_char(self._write_uuid, self.Cmd.READ_STATE, True)
 
-    @property
-    def rssi(self):
-        return self._device.rssi
-
-# NEW DATA
+    # NEW DATA
     # @retry_bluetooth_connection_error
     # async def set_high_speed(self):
     #     await self._write(self.Cmd.ENABLE_HIGH_SPEED)
@@ -212,6 +213,38 @@ class PranaCoordinator(DataUpdateCoordinator):
     @retry_bluetooth_connection_error
     async def get_status_details(self):
         return await self._write(self.Cmd.READ_STATE)
+
+    async def set_speed_in(self, speed: int):
+        if not self.is_on:
+            await self.turn_on()
+
+        direction_up = speed > self.speed_in
+        counter = self.speed_in
+        if direction_up:
+            while counter < speed:
+                await self._write(self.Cmd.SPEED_IN_UP)
+                counter += 1
+        else:
+            while counter > speed:
+                await self._write(self.Cmd.SPEED_IN_DOWN)
+                counter -= 1
+        self.speed_in = speed
+
+    async def set_speed_out(self, speed: int):
+        if not self.is_on:
+            await self.turn_on()
+
+        direction_up = speed > self.speed_out
+        counter = self.speed_out
+        if direction_up:
+            while counter < speed:
+                await self._write(self.Cmd.SPEED_OUT_UP)
+                counter += 1
+        else:
+            while counter > speed:
+                await self._write(self.Cmd.SPEED_OUT_DOWN)
+                counter -= 1
+        self.speed_out = speed
 
     @retry_bluetooth_connection_error
     async def set_speed(self, speed: int):
@@ -302,13 +335,12 @@ class PranaCoordinator(DataUpdateCoordinator):
     async def toggle_auto_mode(self):
         self.auto_mode = not self.auto_mode
         return await self._write(self.Cmd.AUTO_MODE)
-    
+
     @retry_bluetooth_connection_error
     async def set_auto_mode(self):
         if not self.auto_mode:
             self.auto_mode = True
             await self._write(self.Cmd.AUTO_MODE)
-
 
     def __parse_state(self, data: bytearray) -> Optional[PranaState]:
         if not data[:2] == self.STATE_MSG_PREFIX:
@@ -331,7 +363,7 @@ class PranaCoordinator(DataUpdateCoordinator):
         if not self.is_on:
             self.speed = 0
         elif self.auto_mode:
-            self.speed = self.speed_in #same as self.speedOut
+            self.speed = self.speed_in  # same as self.speedOut
         elif self.speed_locked:
             self.speed = self.speed_locked
         elif self.air_in and self.air_in:
@@ -368,29 +400,23 @@ class PranaCoordinator(DataUpdateCoordinator):
         if state is not None:
             dict_state = state.to_dict()
             for key in dict_state:
-                setattr(self, key, dict_state[key])
+                if key == "sensors":
+                    self.sensors = state.sensors
+                else:
+                    setattr(self, key, dict_state[key])
             LOGGER.debug("Send update event %s", dict_state)
             await self.async_request_refresh()
-            
 
-# NEW DATA END
+    # NEW DATA END
 
-
-
-
-
-
-
-
-# OLD
+    # OLD
     @retry_bluetooth_connection_error
     async def _ensure_connected(self) -> None:
         """Ensure connection to device is established."""
         if self._connect_lock.locked():
             LOGGER.debug(
-                "%s: Connection already in progress, waiting for it to complete; RSSI: %s",
-                self.name,
-                self.rssi,
+                "%s: Connection already in progress, waiting for it to complete; RSSI",
+                self.name
             )
         if self._client and self._client.is_connected:
             self._reset_disconnect_timer()
@@ -400,7 +426,7 @@ class PranaCoordinator(DataUpdateCoordinator):
             if self._client and self._client.is_connected:
                 self._reset_disconnect_timer()
                 return
-            LOGGER.debug("%s: Connecting; RSSI: %s", self.name, self.rssi)
+            LOGGER.debug("%s: Connecting;", self.name)
             client = await establish_connection(
                 BleakClientWithServiceCache,
                 self._device,
@@ -409,7 +435,7 @@ class PranaCoordinator(DataUpdateCoordinator):
                 cached_services=self._cached_services,
                 ble_device_callback=lambda: self._device,
             )
-            LOGGER.debug("%s: Connected; RSSI: %s", self.name, self.rssi)
+            LOGGER.debug("%s: Connected; RSSI:", self.name)
 
             self._read_uuid = READ_CHARACTERISTIC_UUIDS[0]
             self._write_uuid = WRITE_CHARACTERISTIC_UUIDS[0]
@@ -417,9 +443,8 @@ class PranaCoordinator(DataUpdateCoordinator):
             self._client = client
             self._reset_disconnect_timer()
 
-            LOGGER.debug("%s: Subscribe to notifications; RSSI: %s", self.name, self.rssi)
+            LOGGER.debug("%s: Subscribe to notifications; RSSI:", self.name)
             await client.start_notify(self._read_uuid, self._notification_handler)
-    
 
     def _reset_disconnect_timer(self) -> None:
         """Reset disconnect timer."""
@@ -433,9 +458,9 @@ class PranaCoordinator(DataUpdateCoordinator):
     def _disconnected(self, client: BleakClientWithServiceCache) -> None:
         """Disconnected callback."""
         if self._expected_disconnect:
-            LOGGER.debug("%s: Disconnected from device; RSSI: %s", self.name, self.rssi)
+            LOGGER.debug("%s: Disconnected from device; RSSI: ", self.name)
             return
-        LOGGER.warning("%s: Device unexpectedly disconnected; RSSI: %s",self.name,self.rssi,)
+        LOGGER.warning("%s: Device unexpectedly disconnected; RSSI: ", self.name)
 
     def _disconnect(self) -> None:
         """Disconnect from device."""
@@ -446,7 +471,7 @@ class PranaCoordinator(DataUpdateCoordinator):
         """Stop the LEDBLE."""
         # LOGGER.debug("%s: Stop", self.name)
         await self._execute_disconnect()
-        
+
     async def _execute_timed_disconnect(self) -> None:
         """Execute timed disconnection."""
         LOGGER.debug(
@@ -468,3 +493,46 @@ class PranaCoordinator(DataUpdateCoordinator):
             if client and client.is_connected:
                 await client.stop_notify(read_char)
                 await client.disconnect()
+
+    def get_value(self, sensor_type: str) -> Union[int, float, None]:
+        """Get sensor value by type."""
+
+        if not self.sensors:
+            return None
+
+        if sensor_type == "temperature_in":
+            return self.sensors.temperature_in
+        elif sensor_type == "temperature_out":
+            return self.sensors.temperature_out
+        elif sensor_type == "humidity":
+            return self.sensors.humidity
+        elif sensor_type == "pressure":
+            return self.sensors.pressure
+        elif sensor_type == "co2":
+            return self.sensors.co2
+        elif sensor_type == "voc":
+            return self.sensors.voc
+        elif sensor_type == "speed_in":
+            return self.speed_in
+        elif sensor_type == "speed_out":
+            return self.speed_out
+
+        else:
+            return None
+
+    def get_unit(self, sensor_type: str) -> Optional[str]:
+        """Get sensor unit by type."""
+        if sensor_type in ["temperature_in", "temperature_out"]:
+            return "°C"
+        elif sensor_type == "humidity":
+            return "%"
+        elif sensor_type == "pressure":
+            return "hPa"
+        elif sensor_type == "co2":
+            return "ppm"
+        elif sensor_type == "voc":
+            return "ppb"
+        elif sensor_type in ["speed_in", "speed_out"]:
+            return "x"
+        else:
+            return None
