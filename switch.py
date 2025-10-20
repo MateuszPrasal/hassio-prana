@@ -16,6 +16,8 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
+from .coordinator import PranaCoordinator
+
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.const import STATE_OFF
@@ -42,7 +44,7 @@ class BasePranaSwitch(CoordinatorEntity, SwitchEntity):
     # Implement one of these methods.
     """Representation of a Prana fan."""
 
-    def __init__(self, hass, coordinator, name: str, entry_id: str):
+    def __init__(self, hass, coordinator: PranaCoordinator, name: str, entry_id: str):
         """Initialize the sensor."""
         super().__init__(coordinator)
         _attr_has_entity_name = True
@@ -139,7 +141,7 @@ class PranaAutoMode(BasePranaSwitch):
     @property
     def is_on(self):
         """Return state of the fan."""
-        return self.coordinator.winter_mode_enabled
+        return self.coordinator.auto_mode
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the entity."""
