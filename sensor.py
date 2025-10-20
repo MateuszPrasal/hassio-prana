@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from homeassistant.helpers.typing import StateType
+from homeassistant.helpers.typing import StateType, UndefinedType
 import logging
 from .const import DOMAIN
 from .coordinator import PranaCoordinator
@@ -107,3 +107,12 @@ class PranaSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str | None:
         return self.coordinator.get_unit(self._sensor_type)
+
+    @property
+    def name(self) -> str | UndefinedType | None:
+        return self._name
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return self.coordinator.mac.replace(":", "") + "_" + self._sensor_type
