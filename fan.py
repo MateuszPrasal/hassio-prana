@@ -5,9 +5,7 @@ from datetime import datetime, timedelta
 import logging
 import math
 from homeassistant.components.fan import (
-    SUPPORT_SET_SPEED,
-    SUPPORT_DIRECTION,
-    SUPPORT_PRESET_MODE,
+    FanEntityFeature,
     FanEntity,
 )
 
@@ -80,7 +78,7 @@ class PranaFan(CoordinatorEntity, FanEntity):
     def extra_state_attributes(self):
         """Provide attributes for display on device card."""
         LOGGER.debug("Setting device attributes")
-        attributes = { 
+        attributes = {
             "co2": self.coordinator.co2,
             "voc": self.coordinator.voc,
             "auto_mode": self.coordinator.auto_mode,
@@ -111,7 +109,8 @@ class PranaFan(CoordinatorEntity, FanEntity):
     @property
     def supported_features(self) -> int:
         """Flag supported features."""
-        return SUPPORT_SET_SPEED | SUPPORT_DIRECTION | SUPPORT_PRESET_MODE
+        # return SUPPORT_SET_SPEED | SUPPORT_DIRECTION | SUPPORT_PRESET_MODE
+        return FanEntityFeature.SET_SPEED | FanEntityFeature.DIRECTION | FanEntityFeature.PRESET_MODE
 
     async def async_turn_on(self, speed: str = None, percentage=None, preset_mode=None, **kwargs) -> None:
         """Turn on the entity."""

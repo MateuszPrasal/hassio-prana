@@ -1,8 +1,6 @@
 from homeassistant.components.switch import (
     DOMAIN as ENTITY_DOMAIN,
-    SwitchEntity,
-    DEVICE_CLASS_SWITCH,
-    DEVICE_CLASS_OUTLET,
+    SwitchEntity
 )
 
 """Support for Prana fan."""
@@ -11,12 +9,6 @@ from . import DOMAIN
 from datetime import datetime, timedelta
 import logging
 import math
-from homeassistant.components.fan import (
-    SUPPORT_SET_SPEED,
-    SUPPORT_DIRECTION,
-    SUPPORT_PRESET_MODE,
-    FanEntity,
-)
 
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -37,6 +29,7 @@ from homeassistant.util.percentage import (
 
 LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass, config_entry, async_add_devices):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
@@ -44,9 +37,11 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     async_add_devices([PranaWinterMode(hass, coordinator, config_entry.data["name"], config_entry.entry_id)])
     async_add_devices([PranaAutoMode(hass, coordinator, config_entry.data["name"], config_entry.entry_id)])
 
+
 class BasePranaSwitch(CoordinatorEntity, SwitchEntity):
     # Implement one of these methods.
     """Representation of a Prana fan."""
+
     def __init__(self, hass, coordinator, name: str, entry_id: str):
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -61,7 +56,7 @@ class BasePranaSwitch(CoordinatorEntity, SwitchEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self.async_write_ha_state()
-    
+
     @property
     def available(self):
         """Return state of the fan."""
@@ -78,6 +73,7 @@ class BasePranaSwitch(CoordinatorEntity, SwitchEntity):
             name=self.name,
             connections={(device_registry.CONNECTION_NETWORK_MAC, self.coordinator.mac)},
         )
+
 
 class PranaHeating(BasePranaSwitch):
     @property
@@ -97,17 +93,18 @@ class PranaHeating(BasePranaSwitch):
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the entity."""
         await self.coordinator.set_heating(False)
-    
+
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return self.coordinator.mac.replace(":", "")+ "_heating"
+        return self.coordinator.mac.replace(":", "") + "_heating"
+
 
 class PranaWinterMode(BasePranaSwitch):
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return self.coordinator.mac.replace(":", "")+ "_winter_mode"
+        return self.coordinator.mac.replace(":", "") + "_winter_mode"
 
     @property
     def name(self) -> str:
@@ -127,11 +124,12 @@ class PranaWinterMode(BasePranaSwitch):
         """Turn off the entity."""
         await self.coordinator.set_winter_mode(False)
 
+
 class PranaAutoMode(BasePranaSwitch):
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return self.coordinator.mac.replace(":", "")+ "_auto_mode"
+        return self.coordinator.mac.replace(":", "") + "_auto_mode"
 
     @property
     def name(self) -> str:
