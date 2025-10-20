@@ -461,6 +461,8 @@ class PranaCoordinator(DataUpdateCoordinator):
 
     def get_sensor_value(self, sensor_type: str) -> Union[int, float, None]:
         """Get sensor value by type."""
+
+        LOGGER.debug("Debugging sensors: %s", self.sensors)
         if not self.sensors:
             return None
 
